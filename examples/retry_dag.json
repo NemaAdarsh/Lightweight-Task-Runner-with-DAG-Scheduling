@@ -1,0 +1,53 @@
+{
+  "dag_id": "retry_example",
+  "description": "Example DAG demonstrating retry logic and error handling",
+  "max_workers": 2,
+  "execution_mode": "threading",
+  "tasks": [
+    {
+      "task_id": "reliable_start",
+      "task_type": "python",
+      "function": "examples.tasks.hello_world",
+      "args": ["Retry Example"],
+      "retries": 0,
+      "timeout": 10,
+      "dependencies": []
+    },
+    {
+      "task_id": "flaky_task_1",
+      "task_type": "python",
+      "function": "examples.tasks.failing_task",
+      "kwargs": {"failure_rate": 0.7},
+      "retries": 5,
+      "timeout": 15,
+      "dependencies": ["reliable_start"]
+    },
+    {
+      "task_id": "flaky_task_2",
+      "task_type": "python",
+      "function": "examples.tasks.failing_task", 
+      "kwargs": {"failure_rate": 0.3},
+      "retries": 3,
+      "timeout": 15,
+      "dependencies": ["reliable_start"]
+    },
+    {
+      "task_id": "aggregation_task",
+      "task_type": "python",
+      "function": "examples.tasks.aggregate_results",
+      "args": ["result1", "result2"],
+      "retries": 1,
+      "timeout": 20,
+      "dependencies": ["flaky_task_1", "flaky_task_2"]
+    },
+    {
+      "task_id": "final_notification",
+      "task_type": "python",
+      "function": "examples.tasks.send_notification",
+      "args": ["Retry example completed"],
+      "retries": 2,
+      "timeout": 10,
+      "dependencies": ["aggregation_task"]
+    }
+  ]
+}

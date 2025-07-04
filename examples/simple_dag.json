@@ -1,0 +1,44 @@
+{
+  "dag_id": "simple_example",
+  "description": "Simple example DAG with basic task dependencies",
+  "max_workers": 2,
+  "execution_mode": "threading",
+  "tasks": [
+    {
+      "task_id": "start_task",
+      "task_type": "python",
+      "function": "examples.tasks.hello_world",
+      "args": ["Simple Example"],
+      "retries": 1,
+      "timeout": 10,
+      "dependencies": []
+    },
+    {
+      "task_id": "process_task",
+      "task_type": "python", 
+      "function": "examples.tasks.process_data",
+      "args": ["sample_data"],
+      "kwargs": {"multiplier": 3},
+      "retries": 2,
+      "timeout": 30,
+      "dependencies": ["start_task"]
+    },
+    {
+      "task_id": "validate_task",
+      "task_type": "python",
+      "function": "examples.tasks.validate_output", 
+      "args": ["Processed: sample_data x3"],
+      "retries": 1,
+      "timeout": 15,
+      "dependencies": ["process_task"]
+    },
+    {
+      "task_id": "cleanup_task",
+      "task_type": "shell",
+      "command": "echo 'Cleanup completed'",
+      "retries": 0,
+      "timeout": 5,
+      "dependencies": ["validate_task"]
+    }
+  ]
+}

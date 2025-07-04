@@ -1,0 +1,101 @@
+{
+  "dag_id": "data_pipeline",
+  "description": "Complex data processing pipeline with parallel execution",
+  "max_workers": 4,
+  "execution_mode": "threading",
+  "tasks": [
+    {
+      "task_id": "fetch_source_a",
+      "task_type": "python",
+      "function": "examples.tasks.fetch_external_data",
+      "args": ["source_a"],
+      "retries": 3,
+      "timeout": 30,
+      "dependencies": []
+    },
+    {
+      "task_id": "fetch_source_b", 
+      "task_type": "python",
+      "function": "examples.tasks.fetch_external_data",
+      "args": ["source_b"],
+      "retries": 3,
+      "timeout": 30,
+      "dependencies": []
+    },
+    {
+      "task_id": "process_data_a",
+      "task_type": "python",
+      "function": "examples.tasks.process_data",
+      "args": ["data_from_source_a"],
+      "kwargs": {"multiplier": 2},
+      "retries": 2,
+      "timeout": 45,
+      "dependencies": ["fetch_source_a"]
+    },
+    {
+      "task_id": "process_data_b",
+      "task_type": "python", 
+      "function": "examples.tasks.process_data",
+      "args": ["data_from_source_b"],
+      "kwargs": {"multiplier": 3},
+      "retries": 2,
+      "timeout": 45,
+      "dependencies": ["fetch_source_b"]
+    },
+    {
+      "task_id": "validate_data_a",
+      "task_type": "python",
+      "function": "examples.tasks.validate_output",
+      "args": ["Processed: data_from_source_a x2"],
+      "retries": 1,
+      "timeout": 20,
+      "dependencies": ["process_data_a"]
+    },
+    {
+      "task_id": "validate_data_b",
+      "task_type": "python",
+      "function": "examples.tasks.validate_output", 
+      "args": ["Processed: data_from_source_b x3"],
+      "retries": 1,
+      "timeout": 20,
+      "dependencies": ["process_data_b"]
+    },
+    {
+      "task_id": "create_report",
+      "task_type": "python",
+      "function": "examples.tasks.create_report",
+      "args": ["Processed: data_from_source_a x2", "Processed: data_from_source_b x3"],
+      "retries": 1,
+      "timeout": 30,
+      "dependencies": ["validate_data_a", "validate_data_b"]
+    },
+    {
+      "task_id": "save_report",
+      "task_type": "python",
+      "function": "examples.tasks.save_to_file",
+      "kwargs": {"filename": "reports/pipeline_report.txt"},
+      "retries": 2,
+      "timeout": 15,
+      "dependencies": ["create_report"]
+    },
+    {
+      "task_id": "send_notification",
+      "task_type": "python",
+      "function": "examples.tasks.send_notification",
+      "args": ["Pipeline completed successfully"],
+      "kwargs": {"recipient": "data_team"},
+      "retries": 3,
+      "timeout": 10,
+      "dependencies": ["save_report"]
+    },
+    {
+      "task_id": "cleanup",
+      "task_type": "python",
+      "function": "examples.tasks.cleanup_temp_files",
+      "args": ["temp_*"],
+      "retries": 0,
+      "timeout": 10,
+      "dependencies": ["send_notification"]
+    }
+  ]
+}

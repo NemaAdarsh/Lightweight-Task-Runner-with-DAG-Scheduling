@@ -1,0 +1,56 @@
+{
+  "dag_id": "shell_commands",
+  "description": "Example DAG using shell commands",
+  "max_workers": 3,
+  "execution_mode": "threading",
+  "tasks": [
+    {
+      "task_id": "create_directory",
+      "task_type": "shell",
+      "command": "mkdir -p output/logs",
+      "retries": 1,
+      "timeout": 10,
+      "dependencies": []
+    },
+    {
+      "task_id": "list_files",
+      "task_type": "shell",
+      "command": "ls -la",
+      "retries": 0,
+      "timeout": 5,
+      "dependencies": ["create_directory"]
+    },
+    {
+      "task_id": "system_info",
+      "task_type": "shell",
+      "command": "echo \"System: $(uname -a)\" > output/system_info.txt",
+      "retries": 1,
+      "timeout": 10,
+      "dependencies": ["create_directory"]
+    },
+    {
+      "task_id": "date_stamp",
+      "task_type": "shell",
+      "command": "date > output/timestamp.txt",
+      "retries": 0,
+      "timeout": 5,
+      "dependencies": ["create_directory"]
+    },
+    {
+      "task_id": "combine_output",
+      "task_type": "shell",
+      "command": "cat output/system_info.txt output/timestamp.txt > output/combined.txt",
+      "retries": 1,
+      "timeout": 10,
+      "dependencies": ["system_info", "date_stamp"]
+    },
+    {
+      "task_id": "final_echo",
+      "task_type": "shell",
+      "command": "echo 'Shell command DAG completed successfully'",
+      "retries": 0,
+      "timeout": 5,
+      "dependencies": ["combine_output", "list_files"]
+    }
+  ]
+}
