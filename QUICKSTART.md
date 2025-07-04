@@ -6,7 +6,7 @@ This guide will help you get started with the Lightweight Task Runner with DAG S
 
 1. **Clone or download the project**
 ```bash
-git clone <repository-url>
+git clone <https://github.com/NemaAdarsh/Lightweight-Task-Runner-with-DAG-Scheduling.git>
 cd "Lightweight Task Runner with DAG Scheduling"
 ```
 
